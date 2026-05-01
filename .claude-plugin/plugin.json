@@ -1,9 +1,7 @@
 {
   "name": "sagan",
-  "description": "TODO: one-line description of what the plugin does.",
+  "description": "Multi-round, parallel-agent deep-research projects: plan a brief, run agents in parallel, synthesise findings, repeat.",
   "version": "0.2.0",
-  "author": {
-    "name": "robertbagge"
-  },
+  "author": { "name": "robertbagge" },
   "repository": "https://github.com/robertbagge/claude-sagan-plugin"
 }
