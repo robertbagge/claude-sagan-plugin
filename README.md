@@ -41,7 +41,7 @@ Each invocation is one round. Rounds are append-only — earlier rounds and thei
 
 The wizard then confirms the resolved path with the user; the brief stores it as `**Output dir**:`.
 
-### `sagan-load-output-folder` hook
+### `sagan-load-output-folder` skill
 
 Sagan documents `sagan-load-output-folder` as a public extension point but does not ship it as an active skill. To pin the output folder for your repo, copy the template at the plugin root into your environment and edit the path:
 
