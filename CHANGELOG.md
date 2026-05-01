@@ -1,0 +1,14 @@
+# Changelog
+
+## [0.2.0](https://github.com/robertbagge/claude-sagan-plugin/compare/v0.1.0...v0.2.0) (2026-05-01)
+
+
+### Features
+
+* **ci:** add release please version updates ([210a6b2](https://github.com/robertbagge/claude-sagan-plugin/commit/210a6b201acf19f22e72dcd3fb9c8b2f1814fe83))
+* init plugin ([bf85f9e](https://github.com/robertbagge/claude-sagan-plugin/commit/bf85f9e3bb10393260383f9fccd1530939a13e38))
+
+
+### Bug Fixes
+
+* **ci:** fix release flow ([d186ebe](https://github.com/robertbagge/claude-sagan-plugin/commit/d186ebed30fdf978ff3b9eb7e83c8e6f5d7ac4f4))
