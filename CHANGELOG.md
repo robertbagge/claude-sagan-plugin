@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.4.0](https://github.com/robertbagge/claude-sagan-plugin/compare/v0.3.0...v0.4.0) (2026-05-01)
+
+
+### Features
+
+* update brief interview flow ([fd0887a](https://github.com/robertbagge/claude-sagan-plugin/commit/fd0887af55d66c2b36b338bca69a46e700757086))
+
 ## [0.3.0](https://github.com/robertbagge/claude-sagan-plugin/compare/v0.2.0...v0.3.0) (2026-05-01)
 
 
