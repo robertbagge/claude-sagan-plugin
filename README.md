@@ -92,6 +92,15 @@ The brief specifies which types apply and in what priority for the project (e.g.
 
 Don't deviate from the structure if you edit the brief by hand.
 
+## Examples
+
+Two complete research corpuses are checked in under `meta/` to show what a finished project looks like — brief, per-topic files, and synthesis.
+
+- [`meta/marvel-universe/`](meta/marvel-universe/) — fictional-world research across cosmology, factions, power scaling, continuities, and crossovers. Demonstrates Type 2/3 source mix on a sprawling, well-documented domain.
+- [`meta/natural-language-processing/`](meta/natural-language-processing/) — technical history of NLP from symbolic era through transformers, RLHF, and frontier directions. Demonstrates Type 1/2-heavy sourcing on a scientific domain.
+
+Read the `brief.md` in each folder to see how the project was scoped, then `synthesis.md` for the integrated output.
+
 ## Files
 
 ```
@@ -105,6 +114,9 @@ claude-sagan-plugin/
 │       └── SKILL.md
 ├── sagan-load-output-folder/
 │   └── SKILL.template.md   # copy into your env to pin the output folder
+├── meta/
+│   ├── marvel-universe/             # example research corpus
+│   └── natural-language-processing/ # example research corpus
 ├── README.md
 └── LICENSE
 ```
