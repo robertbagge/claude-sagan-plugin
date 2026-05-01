@@ -11,21 +11,13 @@ Interactive skill that produces a research brief at `{output_dir}/brief.md`. The
 
 The deep-research workflow runs in rounds: pick a domain, plan one parallel agent per topic, each producing an exhaustive markdown report (1500–4000 words, dense external citations) by doing fresh web research, then synthesise across all topics into a tight executive summary. The first round is typically 5–15 topics; later rounds add coverage based on what the synthesis surfaces. Rounds are append-only — earlier rounds are never rewritten.
 
-The brief is the difference between research that produces tight, comparable topic files and a sprawl. **An agent reading a single topic line in the brief should be able to start working immediately, with no follow-up questions.** That bar is what the wizard exists to enforce.
+The brief is the difference between research that produces tight, comparable topic files and a sprawl. **An agent reading a single topic line in the brief should be able to start working immediately, with no follow-up questions.** That bar is what this skill exists to enforce.
 
 ## Workflow
 
-### Step 1 — Load AskUserQuestion
+### Step 1 — Resolve output root folder
 
-`AskUserQuestion` is a deferred tool. Before the first question, load it:
-
-```
-ToolSearch(query: "select:AskUserQuestion", max_results: 1)
-```
-
-### Step 2 — Resolve output root folder
-
-Before opening the wizard, determine the root folder where research output lives in this repo. Run the cascade below and stop at the first match. The cascade resolves the *root* only — the per-project subfolder is `{root}/{domain-slug}/`, confirmed in the wizard.
+Before opening the wizard, determine the root folder where research output lives in this repo. Run the cascade below and stop at the first match. The cascade resolves the *root* only — the per-project subfolder is `{root}/{domain-slug}/`, confirmed in Step 2 Q7.
 
 1. **Consumer-defined skill.** If a skill named `sagan-load-output-folder` is registered in the user's environment, read its SKILL.md body for a line of the form `output_folder: <path>` and use that path. The plugin ships a template at `sagan-load-output-folder/SKILL.template.md` that consumers copy into their own repo (or `.claude/skills/`, or any plugin) and edit.
 2. **Harness instructions.** If the harness instructions in your context document an output folder for AI output or research output (any naming the local convention uses — e.g. `ai-output-folder`, `research-output`, `docs-research-folder`), use that path. Read the instructions and infer from context; don't insist on a specific marker or filename.
@@ -34,25 +26,77 @@ Before opening the wizard, determine the root folder where research output lives
 
 Don't persist the resolved root anywhere. Each invocation runs the cascade fresh — the skill is run infrequently enough that token efficiency isn't critical.
 
-### Step 3 — Structured wizard
+### Step 2 — Brief interview
 
-Ask the following seven questions one at a time via `AskUserQuestion`. Use freeform-text questions (no multiSelect — these are open-ended). Wait for each answer before asking the next. Between Q1 and Q2, derive the domain slug so Q2 can show the full proposed path.
+#### Phase 1 — ask the user in plain text
 
-1. **Domain** — "What's the domain or project you're researching? A few words is fine; I'll convert it into a kebab-case slug for the directory name. Examples: 'desktop power controls for a Mac app', 'design system foundations', 'mobile auth patterns'."
-2. **Output folder** — "Output will go to `{resolved-root}/{domain-slug}/`. Press enter to accept, or give a different path."
-3. **Goal** — "What's the goal of this research, in one sentence? What decision or design will it inform?"
-4. **Inspirations** — "What inspirations or reference material should the research draw on? Apps, products, companies, design systems, frameworks, articles — whatever applies. One per line, or 'none'."
-5. **Constraints / scope** — "What's explicitly OUT of scope? Platforms, eras, technologies, audiences — anything that should bound the research."
-6. **Initial topics** — "List your initial research topics, one per line. Aim for 5–10. Rough phrasing is fine; we'll sharpen each one in the next step."
-7. **Source types** — "What's the source preference for this research? Pick which types apply and rank them. Type 1 — papers / peer-reviewed work (scientific research). Type 2 — official docs, specs, white papers, renowned domain blogs (tech / industry research). Type 3 — social media, small blogs, podcasts, conference videos (cultural pulse, trends). E.g. 'Type 2 primary, Type 3 secondary, Type 1 not relevant'."
+These two are open-ended foundations. Don't try `AskUserQuestion` here — it requires 2–4 preset options per question and will reject a freeform-only setup.
 
-After answering, derive:
+**Question 1 — Domain**
 
-- **Domain slug** — already derived between Q1 and Q2. Confirm in plain text if the user's domain phrase was ambiguous.
-- **Topic slugs** — kebab-case, lowercase, ASCII, unique within the brief. Used as filenames.
-- **Output dir** — Q2's answer (the proposed default or the user's override).
+"What's the domain or project you're researching? A few words is fine; I'll convert it into a kebab-case slug for the directory name. Examples: 'desktop power controls for a Mac app', 'design system foundations', 'mobile auth patterns'."
 
-### Step 4 — One-question-at-a-time follow-up
+**Question 2 — Goal**
+
+"What's the goal of this research, in one sentence? What decision or design will it inform?"
+
+Derive the domain slug from Q1's answer before moving to Phase 2 — Q7 needs it for the proposed default path.
+
+#### Phase 2 — structured wizard
+
+Load `AskUserQuestion`:
+
+```
+ToolSearch(query: "select:AskUserQuestion", max_results: 1)
+```
+
+For each question below, generate preset options grounded in the user's Q1+Q2 answers (and any prior Phase 2 answers). Use `multiSelect: true` for list-type questions (Q3, Q4, Q5). Always include an "Other (specify)" option so the user can override your suggestions.
+
+**Question 3 — Inspirations** *(multiSelect)*
+
+Ask: "What inspirations / references should the research draw on?"
+
+Generate 4–8 contextually relevant options based on Domain + Goal — apps, products, companies, frameworks, design systems, well-known articles. Always include "None — start clean" and "Other (specify)".
+
+Example: for a domain about command-palette patterns, options might include Apple HIG, Raycast, Arc browser, VS Code, Linear, Notion.
+
+**Question 4 — Constraints / scope** *(multiSelect)*
+
+Ask: "What's explicitly OUT of scope?"
+
+Generate 4–6 plausible constraints based on context (platform, era, technology, audience). Always include "No constraints — broad coverage" and "Other (specify)".
+
+**Question 5 — Initial topics** *(multiSelect)*
+
+Ask: "Which topics should Round 1 cover?"
+
+Generate 8–12 candidate topics for the domain, structured around the user's goal and informed by inspirations + constraints. The user picks which ones to keep; the follow-up loop in Step 3 sharpens each into a concrete research prompt. Always include "Other (add a custom topic)".
+
+**Question 6 — Source types** *(single select)*
+
+Ask: "What's the source preference for this research?"
+
+Options:
+- "Type 2 primary, Type 3 secondary; Type 1 not relevant (best for tech / industry research)"
+- "Type 1 primary, Type 2 secondary; Type 3 not relevant (best for scientific research)"
+- "Type 3 primary, Type 2 secondary; Type 1 not relevant (best for cultural pulse / trends)"
+- "All three balanced"
+- "Other (custom ranking)"
+
+**Question 7 — Output folder** *(single select)*
+
+Ask: "Where should research output live?"
+
+Options:
+- "Use default: `{resolved-root}/{domain-slug}/`"
+- "Other (specify path)"
+
+#### After Q7, derive
+
+- **Topic slugs** — kebab-case, lowercase, ASCII, unique within the brief. Used as filenames. Derive from the topics the user picked in Q5.
+- **Output dir** — Q7's answer (default or override).
+
+### Step 3 — One-question-at-a-time follow-up
 
 Stop using `AskUserQuestion`. From here, ask plain-text questions one at a time until you can write a brief that justifies launching parallel agents.
 
@@ -76,7 +120,7 @@ Stop when:
 - Goal, inspirations, constraints, and source-type preference are unambiguous.
 - The user has nothing more to add ("ready", "done", "go").
 
-### Step 5 — Write the brief
+### Step 4 — Write the brief
 
 Write to `{output_dir}/brief.md`. Create the directory if it doesn't exist.
 
@@ -111,7 +155,7 @@ The structure below is exact — `deep-research` parses these headers. Don't dev
 
 ## Source types
 
-For this project, source preference is: {user's confirmed preference verbatim from the wizard}.
+For this project, source preference is: {user's confirmed preference verbatim from Q6}.
 
 The three types are defined below regardless of priority. When citing a source, use the format and tag for its type. No quotas — cover whichever types the topic actually justifies, weighted by the priority above.
 
@@ -153,7 +197,7 @@ File: `{topic-2-slug}.md`
 
 The good prompt names exemplars, lists comparison axes, and ties back to the project goal. The weak prompt forces the agent to invent its own scope.
 
-### Step 6 — Hand off
+### Step 5 — Hand off
 
 Tell the user:
 
@@ -164,7 +208,7 @@ Tell the user:
 
 ## Notes
 
-- **Output dir is resolved once per invocation** via Step 2's cascade and confirmed in the wizard. The resolved root is not persisted between runs.
+- **Output dir is resolved once per invocation** via Step 1's cascade and confirmed in Step 2 Q7. The resolved root is not persisted between runs.
 - **`sagan-load-output-folder` is a documented hook**, not a skill sagan ships. Consumers who want custom output-folder logic define this skill in their own repo; sagan invokes it if present.
 - **Domain slug must be kebab-case, lowercase, ASCII, and unique** within the resolved root (no clash with existing project subfolders).
 - **Topic slugs must be kebab-case, lowercase, ASCII, and unique** within the brief.
