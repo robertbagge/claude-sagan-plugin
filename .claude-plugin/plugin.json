@@ -1,0 +1,7 @@
+{
+  "name": "sagan",
+  "description": "TODO: one-line description of what the plugin does.",
+  "version": "0.1.0",
+  "author": { "name": "robertbagge" },
+  "repository": "https://github.com/robertbagge/claude-sagan-plugin"
+}
