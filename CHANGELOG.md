@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.0](https://github.com/robertbagge/claude-sagan-plugin/compare/v0.2.0...v0.3.0) (2026-05-01)
+
+
+### Features
+
+* add skills, readme etc. ([b04fc33](https://github.com/robertbagge/claude-sagan-plugin/commit/b04fc33ca3c269ff06af766fa4ba1c25415268c1))
+
 ## [0.2.0](https://github.com/robertbagge/claude-sagan-plugin/compare/v0.1.0...v0.2.0) (2026-05-01)
 
 
