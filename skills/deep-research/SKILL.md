@@ -27,7 +27,7 @@ Each topic file produced by an agent has this shape:
 
 Each synthesis has this shape:
 
-- 1500–2500 word Markdown file.
+- Markdown file, aim for 1500–4000 words — longer is fine when the material warrants it.
 - Five H2 sections in this order: Contents (links to brief and topic files), Executive summary, Cross-cutting themes, Tensions and trade-offs, Open questions.
 - Executive prose, not a list of facts. Navigation lives in the Contents section so the body can stay synthetic.
 
@@ -105,6 +105,7 @@ OUTPUT SHAPE (write to OUTPUT PATH):
 - 4–8 H2 sections, structured around the topic's natural axes — don't impose a generic template.
 - Dense inline citations. Each citation prefixed with its type tag (`[T1]`, `[T2]`, `[T3]`) and using the format defined for that type in the SOURCE TYPES section above. The brief is the single source of truth for type definitions and citation formats — don't invent your own.
 - End with a `## Sources` section listing every citation with full metadata (URL, publication date, author, type).
+- Write as standalone research. Do not reference the research process itself — no "in this round", "previously we found", "this topic adds coverage of", etc. The reader should not be able to tell from the prose what round produced this file or how many agents ran in parallel.
 
 Write a single Markdown file to OUTPUT PATH. Do not write anywhere else. Do not write a synthesis or summary across topics — that's the orchestrator's job.
 
@@ -155,7 +156,9 @@ Once all agents finish:
 {What's unresolved. What would benefit from a future round.}
 ```
 
-The synthesis is the **executive summary across all rounds**. The Contents section handles navigation so the body can stay synthetic — don't duplicate it as a list of topics in the body. Assume readers won't open the topic files. Target 1500–2500 words. If you're listing facts, stop and synthesise.
+The synthesis is the **executive summary across all rounds**. The Contents section handles navigation so the body can stay synthetic — don't duplicate it as a list of topics in the body. Assume readers won't open the topic files. Aim for 1500–4000 words, but if more is required for a high-quality synthesis that's okay — length is a consequence of the material, not a target.
+
+Write the synthesis as standalone research across the corpus. Do not narrate the research process — no "round 1 surfaced…", "the latest round added…", "the previous synthesis missed…". The only structural acknowledgement allowed is that this is a synthesis sitting alongside topic files.
 
 ### Step 5 — Propose gap topics
 

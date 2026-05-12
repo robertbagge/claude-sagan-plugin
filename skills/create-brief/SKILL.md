@@ -171,6 +171,7 @@ Tag every inline citation with its type (`[T1]`, `[T2]`, `[T3]`) so the synthesi
 - Each topic agent's primary mode is external web research — fresh sources, not training data.
 - Synthesis lives at `{output_dir}/synthesis.md` and is fully rewritten after each round.
 - Rounds are appended below as `## Round 2`, `## Round 3`, etc. Earlier rounds and their topic files are never rewritten.
+- **No research-process mechanics in the output.** Topic files and the synthesis must read as standalone research, not as a log of the research process. Do not write things like "in round 1 we found X; round 2 confirmed Y", "this round added coverage of Z", "the previous agent missed…", etc. The only structural leak allowed is the topic/synthesis split itself. State findings directly with their citations; the reader should not be able to tell from the prose how many rounds produced this document.
 
 ## Round 1
 
