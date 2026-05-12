@@ -1,7 +1,7 @@
 {
   "name": "sagan",
   "description": "Multi-round, parallel-agent deep-research projects: plan a brief, run agents in parallel, synthesise findings, repeat.",
-  "version": "0.4.0",
+  "version": "0.5.0",
   "author": {
     "name": "robertbagge"
   },
