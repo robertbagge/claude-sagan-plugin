@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.5.0](https://github.com/robertbagge/claude-sagan-plugin/compare/v0.4.0...v0.5.0) (2026-05-12)
+
+
+### Features
+
+* attempt to remove research mechanics from output ([54c6a76](https://github.com/robertbagge/claude-sagan-plugin/commit/54c6a76371d85fe623b987ed65de05eda89b979f))
+
 ## [0.4.0](https://github.com/robertbagge/claude-sagan-plugin/compare/v0.3.0...v0.4.0) (2026-05-01)
 
 
