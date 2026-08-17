@@ -1,6 +1,6 @@
 # Sagan
 
-A Claude Code plugin for multi-round, parallel-agent deep research. Plan a brief, fan out one agent per topic, synthesise across rounds, propose follow-up topics. Citations are mandatory and tier-tagged.
+A Claude Code plugin for multi-round, parallel-agent deep research. Plan a brief, fan out one agent per topic, synthesise across rounds, propose follow-up topics — then cut the finished corpus along whatever axis you need. Citations are mandatory and tier-tagged.
 
 ## Installation
 
@@ -29,6 +29,37 @@ Reads a brief, dispatches one parallel Task agent per missing topic, fully rewri
 ```
 
 Each invocation is one round. Rounds are append-only — earlier rounds and their topic files are never rewritten. The synthesis is fully rewritten each round so it integrates everything the corpus knows so far.
+
+## `/synthesize` — cut the corpus along an axis
+
+Takes a finished corpus and writes a synthesis of one seam that runs across the topic files, in the shape the reader needs. Corpus-only: it never runs web searches, and material the axis needs but the corpus lacks is reported as a coverage gap rather than filled in.
+
+```
+/synthesize                                     # reads the corpus, proposes candidate axes
+/synthesize how power tiers get adjudicated     # axis given, asks for the shape
+/synthesize implementation guide for retrieval  # shape inferred from wording, no dialog
+```
+
+One extraction agent runs per topic file — every file, no pre-triage — each carrying its citations across verbatim. The orchestrator writes from those extracts to `synthesis/{axis-slug}.md`.
+
+Six modes: **briefing** (dense peer-level overview), **recommendation** (a call with reasoning exposed), **implementation guide** (prerequisites, steps, pitfalls), **comparison** (contenders against criteria), **primer** (from zero, terms defined on first use), **timeline** (how the axis evolved). The mode is inferred when the argument names it, otherwise asked.
+
+## Project layout
+
+A research project is a folder with three parts:
+
+```
+{output_dir}/
+├── brief.md              # written by /create-brief; the contract both skills read
+├── research/             # one file per topic, 1500–4000 words, densely cited
+│   ├── {topic-a}.md
+│   └── {topic-b}.md
+└── synthesis/
+    ├── general.md        # whole-corpus synthesis, fully rewritten each round
+    └── {axis}.md         # written by /synthesize, one per axis
+```
+
+`brief.md` is the only file at the top level. Topic `File:` paths in the brief are relative to the output dir and always live under `research/`. `general.md` is owned by `/deep-research` and rewritten every round; every other file in `synthesis/` is an axis cut written by `/synthesize` and left alone by the research loop.
 
 ## Output folder resolution
 
@@ -82,13 +113,13 @@ The brief specifies which types apply and in what priority for the project (e.g.
 
 `/deep-research` parses these headers from the brief:
 
-- `**Output dir**:` — where topic files and synthesis live.
+- `**Output dir**:` — project root; holds `brief.md`, `research/`, and `synthesis/`.
 - `**Domain**:` — kebab-case slug.
 - `## Goal` — one-sentence goal of the research.
 - `## Inspirations & references` — reference material the agents draw on.
 - `## Constraints & scope` — what's out of scope.
 - `## Source types` — passed verbatim to each topic agent.
-- `## Round N` sections — each contains topic blocks with title, `File:` line, and prompt.
+- `## Round N` sections — each contains topic blocks with title, `File:` line (`research/{topic-slug}.md`, relative to the output dir), and prompt.
 
 Don't deviate from the structure if you edit the brief by hand.
 
@@ -99,7 +130,7 @@ Two complete research corpuses are checked in under `meta/` to show what a finis
 - [`meta/marvel-universe/`](meta/marvel-universe/) — fictional-world research across cosmology, factions, power scaling, continuities, and crossovers. Demonstrates Type 2/3 source mix on a sprawling, well-documented domain.
 - [`meta/natural-language-processing/`](meta/natural-language-processing/) — technical history of NLP from symbolic era through transformers, RLHF, and frontier directions. Demonstrates Type 1/2-heavy sourcing on a scientific domain.
 
-Read the `brief.md` in each folder to see how the project was scoped, then `synthesis.md` for the integrated output.
+Read the `brief.md` in each folder to see how the project was scoped, then `synthesis/general.md` for the integrated output.
 
 ## Files
 
@@ -110,12 +141,17 @@ claude-sagan-plugin/
 ├── skills/
 │   ├── create-brief/
 │   │   └── SKILL.md
-│   └── deep-research/
+│   ├── deep-research/
+│   │   └── SKILL.md
+│   └── synthesize/
 │       └── SKILL.md
 ├── sagan-load-output-folder/
 │   └── SKILL.template.md   # copy into your env to pin the output folder
 ├── meta/
 │   ├── marvel-universe/             # example research corpus
+│   │   ├── brief.md
+│   │   ├── research/
+│   │   └── synthesis/general.md
 │   └── natural-language-processing/ # example research corpus
 ├── README.md
 └── LICENSE

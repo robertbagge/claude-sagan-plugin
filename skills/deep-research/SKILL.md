@@ -8,10 +8,22 @@ argument-hint: "[brief-path]"
 
 Execute one round of deep research from a brief produced by `/create-brief`.
 
+A research project has this layout:
+
+```
+{output_dir}/
+├── brief.md              # written by /create-brief
+├── research/             # one file per topic
+│   └── {topic-slug}.md
+└── synthesis/            # syntheses across the corpus
+    ├── general.md        # the whole-corpus synthesis, rewritten each round
+    └── {axis-slug}.md    # per-axis cuts, owned by /synthesize
+```
+
 Each invocation runs one research round and stages the next:
 
-1. **Run the next pending round** — dispatch one parallel Task agent per missing topic, each writing to `{output_dir}/{topic-slug}.md`.
-2. **Fully rewrite `{output_dir}/synthesis.md`** — incorporating every round executed so far. Tight executive synthesis, not a table of contents in the body.
+1. **Run the next pending round** — dispatch one parallel Task agent per missing topic, each writing to `{output_dir}/research/{topic-slug}.md`.
+2. **Fully rewrite `{output_dir}/synthesis/general.md`** — incorporating every round executed so far. Tight executive synthesis, not a table of contents in the body.
 3. **Propose gap topics for the next round** — one-question-at-a-time conversation, then append `## Round N+1` to the brief and stop. The user re-invokes to execute the new round.
 
 ## Why this matters
@@ -25,7 +37,7 @@ Each topic file produced by an agent has this shape:
 - Dense inline citations to external sources, each tagged with its type (`[T1]`, `[T2]`, `[T3]`) per the brief's Source types section.
 - A `## Sources` section at the bottom with full citation metadata.
 
-Each synthesis has this shape:
+The general synthesis has this shape:
 
 - Markdown file, aim for 1500–4000 words — longer is fine when the material warrants it.
 - Five H2 sections in this order: Contents (links to brief and topic files), Executive summary, Cross-cutting themes, Tensions and trade-offs, Open questions.
@@ -47,20 +59,24 @@ Read the brief and parse:
 - **Goal**, **Inspirations**, **Constraints**, **Source types** sections — these get passed verbatim to each topic agent.
 - **All `## Round N` sections** — each contains topic blocks with title, `File:` line, and prompt.
 
+`File:` paths are relative to the output dir (e.g. `research/tokenization.md`). If a `File:` line has no directory component — an older brief written before the `research/` split — resolve it to `{output_dir}/research/{filename}` anyway.
+
 If the brief is missing required fields (output dir, domain, source types, at least one Round with topics), stop and tell the user what's missing. Don't try to fix the brief yourself.
+
+If the output dir holds a legacy flat corpus (topic files sitting directly in `{output_dir}/`, or a `{output_dir}/synthesis.md`), stop and offer to migrate: `git mv` the topic files into `{output_dir}/research/` and `synthesis.md` to `{output_dir}/synthesis/general.md`, then fix the relative links inside the synthesis. Don't run the round against a half-migrated corpus.
 
 ### Step 2 — Find the next pending round
 
 For each `## Round N` section in order:
 
 - List the topic files it expects (one per `File:` line).
-- Check which already exist in `{output_dir}/`.
+- Check which already exist in `{output_dir}/research/`.
 - The first round where **any** topic file is missing is the round to execute.
 
 Special cases:
 
-- **All rounds fully executed, synthesis up to date** → jump to Step 5 (propose new gap topics for a future round).
-- **All rounds fully executed, synthesis missing or older than the latest topic file** → jump to Step 4 (rewrite synthesis), then Step 5.
+- **All rounds fully executed, general synthesis up to date** → jump to Step 5 (propose new gap topics for a future round).
+- **All rounds fully executed, `synthesis/general.md` missing or older than the latest topic file** → jump to Step 4 (rewrite the general synthesis), then Step 5.
 - **Round partially executed** (some files exist, some don't) → only dispatch agents for the missing files.
 - **User added a new round to the brief manually between invocations** → Step 2 will detect it as the next pending round and run it. Skip Step 5/6 in that case — the user already chose the topics themselves.
 
@@ -93,7 +109,7 @@ SOURCE TYPES (verbatim from the brief — apply the priority stated in the brief
 
 {Source types section verbatim from the brief}
 
-OUTPUT PATH: {output_dir}/{topic-slug}.md
+OUTPUT PATH: {output_dir}/research/{topic-slug}.md
 
 PRIMARY MODE: external web research.
 - Use web search and read primary sources directly. The whole point of this round is to bring fresh external evidence into the corpus.
@@ -116,15 +132,15 @@ Send all Task tool calls in **one** assistant message. Wait for all to complete 
 
 #### Verify before synthesising
 
-After all calls return, verify every expected topic file exists at `{output_dir}/{topic-slug}.md`. If any are missing — agent failed outright, or returned a summary but didn't actually write the file — surface the list of failed topics to the user and ask whether to retry, skip, or stop, before moving to Step 4. Don't synthesise an incomplete corpus silently.
+After all calls return, verify every expected topic file exists at `{output_dir}/research/{topic-slug}.md`. If any are missing — agent failed outright, or returned a summary but didn't actually write the file — surface the list of failed topics to the user and ask whether to retry, skip, or stop, before moving to Step 4. Don't synthesise an incomplete corpus silently.
 
-### Step 4 — Fully rewrite the synthesis
+### Step 4 — Fully rewrite the general synthesis
 
 Once all agents finish:
 
-1. Read **every** topic file in `{output_dir}/` (across all rounds, not just this one).
-2. Read the previous `synthesis.md` if any — only as background. You'll overwrite it.
-3. Write a new `{output_dir}/synthesis.md` from scratch:
+1. Read **every** topic file in `{output_dir}/research/` (across all rounds, not just this one).
+2. Read the previous `synthesis/general.md` if any — only as background. You'll overwrite it.
+3. Write a new `{output_dir}/synthesis/general.md` from scratch. Links are relative to `synthesis/`, so they step up one level:
 
 ```markdown
 # {Domain Title} — Synthesis
@@ -134,9 +150,9 @@ Once all agents finish:
 
 ## Contents
 
-- [Brief](./brief.md) — research brief that drove this corpus
-- [{topic-1-title}](./{topic-1-slug}.md) — {one-line summary}
-- [{topic-2-title}](./{topic-2-slug}.md) — {one-line summary}
+- [Brief](../brief.md) — research brief that drove this corpus
+- [{topic-1-title}](../research/{topic-1-slug}.md) — {one-line summary}
+- [{topic-2-title}](../research/{topic-2-slug}.md) — {one-line summary}
 ...
 
 ## Executive summary
@@ -145,7 +161,7 @@ Once all agents finish:
 
 ## Cross-cutting themes
 
-{Patterns that appear across multiple topics. Each theme: 1–3 paragraphs. Cite topic files inline as clickable markdown links using the topic title as link text: `[Topic title](./topic-slug.md)`.}
+{Patterns that appear across multiple topics. Each theme: 1–3 paragraphs. Cite topic files inline as clickable markdown links using the topic title as link text: `[Topic title](../research/topic-slug.md)`.}
 
 ## Tensions and trade-offs
 
@@ -156,7 +172,7 @@ Once all agents finish:
 {What's unresolved. What would benefit from a future round.}
 ```
 
-The synthesis is the **executive summary across all rounds**. The Contents section handles navigation so the body can stay synthetic — don't duplicate it as a list of topics in the body. Assume readers won't open the topic files. Aim for 1500–4000 words, but if more is required for a high-quality synthesis that's okay — length is a consequence of the material, not a target.
+`general.md` is the **executive summary across the whole corpus**, covering all rounds and all topics. The Contents section handles navigation so the body can stay synthetic — don't duplicate it as a list of topics in the body. Assume readers won't open the topic files. Aim for 1500–4000 words, but if more is required for a high-quality synthesis that's okay — length is a consequence of the material, not a target.
 
 Write the synthesis as standalone research across the corpus. Do not narrate the research process — no "round 1 surfaced…", "the latest round added…", "the previous synthesis missed…". The only structural acknowledgement allowed is that this is a synthesis sitting alongside topic files.
 
@@ -175,7 +191,7 @@ If the user accepts zero new topics, the research is finished. Tell them so and 
 
 ### Step 6 — Append the next round
 
-If the user accepted at least one new topic, append (don't rewrite) a new `## Round N+1` section to the brief, with the same per-topic structure as Round 1.
+If the user accepted at least one new topic, append (don't rewrite) a new `## Round N+1` section to the brief, with the same per-topic structure as Round 1 — including `File: research/{topic-slug}.md` lines.
 
 Tell the user:
 
@@ -192,7 +208,8 @@ Then stop. **Do not execute Round N+1 in the same invocation** — the user re-i
 - **External research is the primary mode** for every topic agent. Web search and primary sources first; training data alone is not acceptable output.
 - **Source type tagging is mandatory.** Every inline citation gets `[T1]`, `[T2]`, or `[T3]`. The synthesis uses the distribution to spot coverage gaps relative to the brief's stated source preference.
 - **Skip topics that already have files.** If a round was partially executed, only dispatch for missing files.
-- **Synthesis is always a full rewrite.** Never patch or append.
+- **Topic files live in `{output_dir}/research/`; the whole-corpus synthesis lives at `{output_dir}/synthesis/general.md`.** Never write topic files or a synthesis directly into `{output_dir}/` — `brief.md` is the only file at that level. Other files under `synthesis/` are per-axis cuts owned by `/synthesize`; never rewrite or delete them, even when a new round makes them stale.
+- **The general synthesis is always a full rewrite.** Never patch or append.
 - **The brief is append-only.** Never rewrite earlier rounds.
 - **Don't commit.** Leave changes uncommitted. The user reviews before committing.
 - **No emojis.** Skill outputs should not contain emojis.
