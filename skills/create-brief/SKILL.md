@@ -7,6 +7,17 @@ description: Plan a multi-round, parallel-agent deep-research project. Use when 
 
 Interactive skill that produces a research brief at `{output_dir}/brief.md`. The brief is the single source of truth that the deep-research skill reads to dispatch parallel research agents.
 
+A research project has this layout:
+
+```
+{output_dir}/
+├── brief.md              # this skill's only output
+├── research/             # one file per topic, written by /deep-research
+│   └── {topic-slug}.md
+└── synthesis/            # syntheses across the corpus
+    └── general.md        # the whole-corpus synthesis, rewritten each round
+```
+
 ## Why this matters
 
 The deep-research workflow runs in rounds: pick a domain, plan one parallel agent per topic, each producing an exhaustive markdown report (1500–4000 words, dense external citations) by doing fresh web research, then synthesise across all topics into a tight executive summary. The first round is typically 5–15 topics; later rounds add coverage based on what the synthesis surfaces. Rounds are append-only — earlier rounds are never rewritten.
@@ -167,9 +178,9 @@ Tag every inline citation with its type (`[T1]`, `[T2]`, `[T3]`) so the synthesi
 
 ## Conventions
 
-- Each topic is researched by a parallel agent and saved to `{output_dir}/{topic-slug}.md`.
+- Each topic is researched by a parallel agent and saved to `{output_dir}/research/{topic-slug}.md`.
 - Each topic agent's primary mode is external web research — fresh sources, not training data.
-- Synthesis lives at `{output_dir}/synthesis.md` and is fully rewritten after each round.
+- The whole-corpus synthesis lives at `{output_dir}/synthesis/general.md` and is fully rewritten after each round. Other files in `{output_dir}/synthesis/` are topic-specific syntheses across the same corpus.
 - Rounds are appended below as `## Round 2`, `## Round 3`, etc. Earlier rounds and their topic files are never rewritten.
 - **No research-process mechanics in the output.** Topic files and the synthesis must read as standalone research, not as a log of the research process. Do not write things like "in round 1 we found X; round 2 confirmed Y", "this round added coverage of Z", "the previous agent missed…", etc. The only structural leak allowed is the topic/synthesis split itself. State findings directly with their citations; the reader should not be able to tell from the prose how many rounds produced this document.
 
@@ -177,13 +188,13 @@ Tag every inline citation with its type (`[T1]`, `[T2]`, `[T3]`) so the synthesi
 
 ### {Topic 1 title}
 
-File: `{topic-1-slug}.md`
+File: `research/{topic-1-slug}.md`
 
 {1–2 sentence research prompt. Specific. Actionable. Reference inspirations if relevant.}
 
 ### {Topic 2 title}
 
-File: `{topic-2-slug}.md`
+File: `research/{topic-2-slug}.md`
 
 {1–2 sentence research prompt.}
 
@@ -213,6 +224,7 @@ Tell the user:
 - **`sagan-load-output-folder` is a documented hook**, not a skill sagan ships. Consumers who want custom output-folder logic define this skill in their own repo; sagan invokes it if present.
 - **Domain slug must be kebab-case, lowercase, ASCII, and unique** within the resolved root (no clash with existing project subfolders).
 - **Topic slugs must be kebab-case, lowercase, ASCII, and unique** within the brief.
-- **Don't write topic files yourself.** Only write `brief.md`. The `deep-research` skill writes the topic files.
+- **`File:` paths are relative to the output dir** and always live under `research/`.
+- **Don't write topic files yourself, and don't create `research/` or `synthesis/`.** Only write `brief.md`. The `deep-research` skill creates those directories and writes the files.
 - **Don't commit.** Leave the brief uncommitted. The user reviews and runs `/deep-research`.
 - **No emojis.** Skill outputs should not contain emojis.

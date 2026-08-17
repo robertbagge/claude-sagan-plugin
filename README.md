@@ -30,6 +30,22 @@ Reads a brief, dispatches one parallel Task agent per missing topic, fully rewri
 
 Each invocation is one round. Rounds are append-only — earlier rounds and their topic files are never rewritten. The synthesis is fully rewritten each round so it integrates everything the corpus knows so far.
 
+## Project layout
+
+A research project is a folder with three parts:
+
+```
+{output_dir}/
+├── brief.md              # written by /create-brief; the contract both skills read
+├── research/             # one file per topic, 1500–4000 words, densely cited
+│   ├── {topic-a}.md
+│   └── {topic-b}.md
+└── synthesis/
+    └── general.md        # whole-corpus synthesis, fully rewritten each round
+```
+
+`brief.md` is the only file at the top level. Topic `File:` paths in the brief are relative to the output dir and always live under `research/`. `synthesis/` holds `general.md` plus, later, topic-specific syntheses across the same corpus.
+
 ## Output folder resolution
 
 `/create-brief` runs a four-rung cascade to find where research output should live. It stops at the first match.
@@ -82,13 +98,13 @@ The brief specifies which types apply and in what priority for the project (e.g.
 
 `/deep-research` parses these headers from the brief:
 
-- `**Output dir**:` — where topic files and synthesis live.
+- `**Output dir**:` — project root; holds `brief.md`, `research/`, and `synthesis/`.
 - `**Domain**:` — kebab-case slug.
 - `## Goal` — one-sentence goal of the research.
 - `## Inspirations & references` — reference material the agents draw on.
 - `## Constraints & scope` — what's out of scope.
 - `## Source types` — passed verbatim to each topic agent.
-- `## Round N` sections — each contains topic blocks with title, `File:` line, and prompt.
+- `## Round N` sections — each contains topic blocks with title, `File:` line (`research/{topic-slug}.md`, relative to the output dir), and prompt.
 
 Don't deviate from the structure if you edit the brief by hand.
 
@@ -99,7 +115,7 @@ Two complete research corpuses are checked in under `meta/` to show what a finis
 - [`meta/marvel-universe/`](meta/marvel-universe/) — fictional-world research across cosmology, factions, power scaling, continuities, and crossovers. Demonstrates Type 2/3 source mix on a sprawling, well-documented domain.
 - [`meta/natural-language-processing/`](meta/natural-language-processing/) — technical history of NLP from symbolic era through transformers, RLHF, and frontier directions. Demonstrates Type 1/2-heavy sourcing on a scientific domain.
 
-Read the `brief.md` in each folder to see how the project was scoped, then `synthesis.md` for the integrated output.
+Read the `brief.md` in each folder to see how the project was scoped, then `synthesis/general.md` for the integrated output.
 
 ## Files
 
@@ -116,6 +132,9 @@ claude-sagan-plugin/
 │   └── SKILL.template.md   # copy into your env to pin the output folder
 ├── meta/
 │   ├── marvel-universe/             # example research corpus
+│   │   ├── brief.md
+│   │   ├── research/
+│   │   └── synthesis/general.md
 │   └── natural-language-processing/ # example research corpus
 ├── README.md
 └── LICENSE
