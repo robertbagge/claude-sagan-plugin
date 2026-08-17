@@ -1,6 +1,6 @@
 # Sagan
 
-A Claude Code plugin for multi-round, parallel-agent deep research. Plan a brief, fan out one agent per topic, synthesise across rounds, propose follow-up topics. Citations are mandatory and tier-tagged.
+A Claude Code plugin for multi-round, parallel-agent deep research. Plan a brief, fan out one agent per topic, synthesise across rounds, propose follow-up topics — then cut the finished corpus along whatever axis you need. Citations are mandatory and tier-tagged.
 
 ## Installation
 
@@ -30,6 +30,20 @@ Reads a brief, dispatches one parallel Task agent per missing topic, fully rewri
 
 Each invocation is one round. Rounds are append-only — earlier rounds and their topic files are never rewritten. The synthesis is fully rewritten each round so it integrates everything the corpus knows so far.
 
+## `/synthesize` — cut the corpus along an axis
+
+Takes a finished corpus and writes a synthesis of one seam that runs across the topic files, in the shape the reader needs. Corpus-only: it never runs web searches, and material the axis needs but the corpus lacks is reported as a coverage gap rather than filled in.
+
+```
+/synthesize                                     # reads the corpus, proposes candidate axes
+/synthesize how power tiers get adjudicated     # axis given, asks for the shape
+/synthesize implementation guide for retrieval  # shape inferred from wording, no dialog
+```
+
+One extraction agent runs per topic file — every file, no pre-triage — each carrying its citations across verbatim. The orchestrator writes from those extracts to `synthesis/{axis-slug}.md`.
+
+Six modes: **briefing** (dense peer-level overview), **recommendation** (a call with reasoning exposed), **implementation guide** (prerequisites, steps, pitfalls), **comparison** (contenders against criteria), **primer** (from zero, terms defined on first use), **timeline** (how the axis evolved). The mode is inferred when the argument names it, otherwise asked.
+
 ## Project layout
 
 A research project is a folder with three parts:
@@ -41,10 +55,11 @@ A research project is a folder with three parts:
 │   ├── {topic-a}.md
 │   └── {topic-b}.md
 └── synthesis/
-    └── general.md        # whole-corpus synthesis, fully rewritten each round
+    ├── general.md        # whole-corpus synthesis, fully rewritten each round
+    └── {axis}.md         # written by /synthesize, one per axis
 ```
 
-`brief.md` is the only file at the top level. Topic `File:` paths in the brief are relative to the output dir and always live under `research/`. `synthesis/` holds `general.md` plus, later, topic-specific syntheses across the same corpus.
+`brief.md` is the only file at the top level. Topic `File:` paths in the brief are relative to the output dir and always live under `research/`. `general.md` is owned by `/deep-research` and rewritten every round; every other file in `synthesis/` is an axis cut written by `/synthesize` and left alone by the research loop.
 
 ## Output folder resolution
 
@@ -126,7 +141,9 @@ claude-sagan-plugin/
 ├── skills/
 │   ├── create-brief/
 │   │   └── SKILL.md
-│   └── deep-research/
+│   ├── deep-research/
+│   │   └── SKILL.md
+│   └── synthesize/
 │       └── SKILL.md
 ├── sagan-load-output-folder/
 │   └── SKILL.template.md   # copy into your env to pin the output folder

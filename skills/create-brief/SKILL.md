@@ -15,7 +15,8 @@ A research project has this layout:
 ├── research/             # one file per topic, written by /deep-research
 │   └── {topic-slug}.md
 └── synthesis/            # syntheses across the corpus
-    └── general.md        # the whole-corpus synthesis, rewritten each round
+    ├── general.md        # the whole-corpus synthesis, rewritten each round
+    └── {axis-slug}.md    # per-axis cuts, written later by /synthesize
 ```
 
 ## Why this matters
@@ -180,7 +181,7 @@ Tag every inline citation with its type (`[T1]`, `[T2]`, `[T3]`) so the synthesi
 
 - Each topic is researched by a parallel agent and saved to `{output_dir}/research/{topic-slug}.md`.
 - Each topic agent's primary mode is external web research — fresh sources, not training data.
-- The whole-corpus synthesis lives at `{output_dir}/synthesis/general.md` and is fully rewritten after each round. Other files in `{output_dir}/synthesis/` are topic-specific syntheses across the same corpus.
+- The whole-corpus synthesis lives at `{output_dir}/synthesis/general.md` and is fully rewritten after each round. Other files in `{output_dir}/synthesis/` are per-axis cuts across the same corpus, written by `/synthesize` and never touched by the research loop.
 - Rounds are appended below as `## Round 2`, `## Round 3`, etc. Earlier rounds and their topic files are never rewritten.
 - **No research-process mechanics in the output.** Topic files and the synthesis must read as standalone research, not as a log of the research process. Do not write things like "in round 1 we found X; round 2 confirmed Y", "this round added coverage of Z", "the previous agent missed…", etc. The only structural leak allowed is the topic/synthesis split itself. State findings directly with their citations; the reader should not be able to tell from the prose how many rounds produced this document.
 

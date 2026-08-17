@@ -16,7 +16,8 @@ A research project has this layout:
 ├── research/             # one file per topic
 │   └── {topic-slug}.md
 └── synthesis/            # syntheses across the corpus
-    └── general.md        # the whole-corpus synthesis, rewritten each round
+    ├── general.md        # the whole-corpus synthesis, rewritten each round
+    └── {axis-slug}.md    # per-axis cuts, owned by /synthesize
 ```
 
 Each invocation runs one research round and stages the next:
@@ -207,7 +208,7 @@ Then stop. **Do not execute Round N+1 in the same invocation** — the user re-i
 - **External research is the primary mode** for every topic agent. Web search and primary sources first; training data alone is not acceptable output.
 - **Source type tagging is mandatory.** Every inline citation gets `[T1]`, `[T2]`, or `[T3]`. The synthesis uses the distribution to spot coverage gaps relative to the brief's stated source preference.
 - **Skip topics that already have files.** If a round was partially executed, only dispatch for missing files.
-- **Topic files live in `{output_dir}/research/`; the whole-corpus synthesis lives at `{output_dir}/synthesis/general.md`.** Never write topic files or a synthesis directly into `{output_dir}/` — `brief.md` is the only file at that level. Other files under `synthesis/` are topic-specific syntheses; leave them alone.
+- **Topic files live in `{output_dir}/research/`; the whole-corpus synthesis lives at `{output_dir}/synthesis/general.md`.** Never write topic files or a synthesis directly into `{output_dir}/` — `brief.md` is the only file at that level. Other files under `synthesis/` are per-axis cuts owned by `/synthesize`; never rewrite or delete them, even when a new round makes them stale.
 - **The general synthesis is always a full rewrite.** Never patch or append.
 - **The brief is append-only.** Never rewrite earlier rounds.
 - **Don't commit.** Leave changes uncommitted. The user reviews before committing.
