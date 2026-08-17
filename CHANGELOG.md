@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.6.0](https://github.com/robertbagge/claude-sagan-plugin/compare/v0.5.0...v0.6.0) (2026-08-17)
+
+
+### Features
+
+* add /synthesize skill for cutting a corpus along an axis ([1373301](https://github.com/robertbagge/claude-sagan-plugin/commit/1373301742494aa53529b106a62352ceb79dee2f))
+* split output into research/ and synthesis/, add /synthesize skill ([8313ec6](https://github.com/robertbagge/claude-sagan-plugin/commit/8313ec690e80d6c3b3effd396fc6719d46af26d2))
+* split research output into research/ and synthesis/ folders ([894e7c8](https://github.com/robertbagge/claude-sagan-plugin/commit/894e7c88f6da6da762f5a00c36a96b5961c5fedd))
+
 ## [0.5.0](https://github.com/robertbagge/claude-sagan-plugin/compare/v0.4.0...v0.5.0) (2026-05-12)
 
 
